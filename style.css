@@ -1,0 +1,127 @@
+.main {
+  margin: auto;
+  width: 900px;
+  min-height: 100vh;
+}
+
+.dark-mode {
+  color: white;
+  background-color: #22313f;
+}
+
+.accordion {
+  font-size: 15px;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  text-align: left;
+  outline: none;
+  background-color: #22313f;
+  color: #ebebeb;
+}
+
+.dark-mode .accordion {
+  background-color: #ebebeb;
+  color: #22313f;
+}
+
+.accordion.active:after {
+  content: '-';
+}
+
+.accordion:after {
+  content: '+';
+  float: right;
+}
+
+.row {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+.column-justified {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-left: 5px;
+}
+
+.dead {
+  color: #aaa;
+}
+
+.dark-mode .dead {
+  color: #33423f;
+}
+
+.captured {
+  background-color: #ebebeb;
+}
+
+.dark-mode .captured {
+  background-color: #aaa;
+}
+
+h3 {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+h4 {
+  margin: 0px;
+}
+
+.popup {
+  margin: 70px auto;
+  padding: 20px;
+  border-radius: 5px;
+  width: 30%;
+  position: relative;
+  transition: all 5s ease-in-out;
+  background-color: #ebebeb;
+}
+
+.dark-mode .popup {
+  background-color: #22313f;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  transition: opacity 500ms;
+  visibility: hidden;
+  opacity: 1;
+}
+
+.overlay-show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tas {
+  width: 120px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+footer {
+  margin-top: auto;
+  height: 30x;
+  width: 100%;
+  text-align: center;
+  font-size: small;
+}
+
+footer .disclaimer {
+  font-size: smaller;
+}

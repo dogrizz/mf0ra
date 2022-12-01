@@ -37,7 +37,7 @@ function FooterComponent() {
         m('span', 'Please '),
         m('a', { target: '_blank', href: 'https://www.patreon.com/Joshua' }, 'support MF0 creator'),
         m('span', ' or '),
-        m('a', { target: '_blank', href: 'https://glyphpress.com/talk/mobile-frame-zero-002-intercept-orbit-final-pdf' }, 'buy a rulebook'),
+        m('a', { target: '_blank', href: 'https://glyphpress.com/talk/product/mobile-frame-zero-001-rapid-attack' }, 'buy a rulebook'),
         m('div', { class: 'disclaimer' }, [m('span', 'I am not the creator ;)')]),
       ])
     },

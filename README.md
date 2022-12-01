@@ -1,10 +1,10 @@
 # mf0
 
-Tools for managing game of Mobile frame zero: Intercept Orbit.
+Tools for managing game of Mobile frame zero: Rapid attack.
 
 Available at https://dogrizz.github.io/mf0/
 
-Check out rules at https://glyphpress.com/talk/mobile-frame-zero-002-intercept-orbit-final-pdf \
+Check out rules at https://glyphpress.com/talk/product/mobile-frame-zero-001-rapid-attack \
 and http://mobileframezero.com/mfz/ for more information.
 
 Uses:

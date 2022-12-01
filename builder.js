@@ -8,7 +8,7 @@
     capital: 4,
     frigate: 3,
   }
-  const LOCAL_STORAGE_KEY = 'mf0-tools'
+  const LOCAL_STORAGE_KEY = 'mf0ra-tools'
 
   function recalculatePPA() {
     calculatePPA(players, syncShips)
@@ -117,79 +117,6 @@
     }
   }
 
-  function MechCompanies() {
-    function shipCatapults(ship) {
-      if (ship.hasOwnProperty('systems')) {
-        return ship.systems.filter(function (system) {
-          return system.class === 'catapult'
-        })
-      }
-      return []
-    }
-
-    function setAce(hasAce, ship, fleet) {
-      ship.hasAce = hasAce
-      fleet.aceSelected = hasAce
-      if (!hasAce) {
-        delete ship.aceType
-      }
-      saveState()
-    }
-
-    return {
-      view: function (vnode) {
-        var ship = vnode.attrs.ship
-        var fleet = vnode.attrs.fleet
-        var catapults = shipCatapults(ship)
-
-        return [
-          catapults.length > 0
-            ? m('div', { class: 'row', style: 'gap: 10px' }, [
-                m(
-                  'div',
-                  { class: 'column' },
-                  catapults.map(function (system) {
-                    return m('div', 'Mech company')
-                  }),
-                ),
-                m(
-                  'label',
-                  { hidden: fleet.aceSelected && !ship.hasAce },
-                  'Has ace',
-                  m('input', {
-                    type: 'checkbox',
-                    disabled: fleet.aceSelected && !ship.hasAce,
-                    checked: ship.hasAce,
-                    onclick: function (e) {
-                      setAce(e.target.checked, ship, fleet)
-                    },
-                  }),
-                ),
-                m(
-                  'select',
-                  {
-                    value: ship.aceType,
-                    disabled: !ship.hasAce,
-                    hidden: !ship.hasAce,
-                    oninput: function (e) {
-                      ship.aceType = e.target.value
-                      saveState()
-                    },
-                  },
-                  [
-                    m('option', { value: 'red' }, 'Red Ace'),
-                    m('option', { value: 'blue' }, 'Blue Ace'),
-                    m('option', { value: 'green' }, 'Green Ace'),
-                    m('option', { value: 'yellow' }, 'Yellow Ace'),
-                  ],
-                ),
-              ])
-            : null,
-        ]
-      },
-    }
-  }
-
   function ShipComponent() {
     function changeName(ship, newName) {
       ship.name = newName
@@ -219,10 +146,6 @@
     function duplicate(fleet, ship) {
       var position = fleet.ships.indexOf(ship)
       fleet.ships.splice(position, 0, copy(ship))
-      if (ship.hasAce) {
-        ship.hasAce = false
-        delete ship.aceType
-      }
       recalculatePPA()
     }
 
@@ -286,7 +209,6 @@
                 })
               : null,
           ]),
-          m(MechCompanies, { ship: ship, fleet: fleet }),
         ])
       },
     }
@@ -476,7 +398,7 @@
       return [
         m(OptionsComponent, {}),
         m('main', { class: 'main column' }, [
-          m('h1', 'MF0 Intercept Orbit points per asset calculator'),
+          m('h1', 'MF0 Rapid Attack points per asset calculator'),
           m('div', { class: 'row' }, [
             m(
               'div',

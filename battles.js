@@ -9,7 +9,7 @@
       return [
         m(OptionsComponent, { hideBattleLink: true }),
         m('main', { class: 'main column' }, [
-          m('h1', 'MF0 Intercept Orbit battles'),
+          m('h1', 'MF0 Rapid Attack battles'),
           m('div', { class: 'column', style: 'gap: 10px' }, [
             !battles || Object.entries(battles).length === 0
               ? [

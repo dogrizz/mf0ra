@@ -1,4 +1,4 @@
-const BATTLE_STORAGE_KEY = 'mf0-battles'
+const BATTLE_STORAGE_KEY = 'mf0ra-battles'
 const BATTLE_ID_PARAM = 'battleId'
 
 function calculatePPA(players, syncShips) {

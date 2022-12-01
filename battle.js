@@ -271,7 +271,7 @@
       return [
         m(OptionsComponent, {}),
         m('main', { class: 'main column' }, [
-          m('h1', 'MF0 Intercept Orbit battle tracker'),
+          m('h1', 'MF0 Rapid Attack battle tracker'),
           !battle
             ? "Can't find your battle"
             : [

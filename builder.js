@@ -2,21 +2,18 @@
   var root = document.body
 
   var players = []
-  var trackShips = false
-  var syncShips = false
-  var MAX_SYSTEMS = {
-    capital: 4,
-    frigate: 3,
-  }
+  var trackMechs = false
+  var syncMechs = false
+  var MAX_SYSTEMS = 4
   const LOCAL_STORAGE_KEY = 'mf0ra-tools'
 
   function recalculatePPA() {
-    calculatePPA(players, syncShips)
+    calculatePPA(players, syncMechs)
     saveState()
   }
 
   function saveState() {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ players: players, track: trackShips, sync: syncShips }))
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ players: players, track: trackMechs, sync: syncMechs }))
   }
 
   function SystemComponent() {
@@ -25,7 +22,7 @@
     function changeClass(system, newClass) {
       system.class = newClass
       if (system.class === 'attack') {
-        changeAttackType(system, 'p')
+        changeAttackType(system, 'd')
       }
       recalculatePPA()
     }
@@ -56,9 +53,9 @@
       view: function (vnode) {
         var system = vnode.attrs.system
         var weapons = [
-          m('option', { value: 'p' }, 'Point defence'),
-          m('option', { value: 'a' }, 'Assault'),
-          m('option', { value: 's' }, 'Support'),
+          m('option', { value: 'm' }, 'Melee'),
+          m('option', { value: 'd' }, 'Direct'),
+          m('option', { value: 'a' }, 'Artillery'),
         ]
         return [
           m(
@@ -74,7 +71,7 @@
               m('option', { value: 'attack' }, 'Attack'),
               m('option', { value: 'defence' }, 'Defence'),
               m('option', { value: 'sensor' }, 'Sensors'),
-              m('option', { value: 'catapult' }, 'Catapult'),
+              m('option', { value: 'move' }, 'Movement'),
             ],
           ),
           system.class === 'attack'
@@ -117,55 +114,47 @@
     }
   }
 
-  function ShipComponent() {
-    function changeName(ship, newName) {
-      ship.name = newName
+  function MechComponent() {
+    function changeName(mech, newName) {
+      mech.name = newName
     }
 
-    function changeClass(ship, newClass) {
-      if (ship.class !== newClass) {
-        ship.class = newClass
-        ship.systems = []
-        var systems = MAX_SYSTEMS.hasOwnProperty(newClass) ? MAX_SYSTEMS[newClass] : 0
-        for (var i = 0; i < systems; i++) {
-          ship.systems.push({ class: '' })
-        }
-        saveState()
-      }
-    }
-
-    function remove(fleet, ship) {
-      var position = fleet.ships.indexOf(ship)
-      fleet.ships.splice(position, 1)
-      if (ship.hasAce) {
-        fleet.aceSelected = false
+    function remove(team, mech) {
+      var position = team.mechs.indexOf(mech)
+      team.mechs.splice(position, 1)
+      if (mech.hasAce) {
+        team.aceSelected = false
       }
       recalculatePPA()
     }
 
-    function duplicate(fleet, ship) {
-      var position = fleet.ships.indexOf(ship)
-      fleet.ships.splice(position, 0, copy(ship))
+    function duplicate(team, mech) {
+      var position = team.mechs.indexOf(mech)
+      team.mechs.splice(position, 0, copy(mech))
       recalculatePPA()
     }
 
     return {
       oninit: function (vnode) {
-        var ship = vnode.attrs.ship
-        if (!ship.class) {
-          changeClass(ship, 'frigate')
+        var mech = vnode.attrs.mech
+        if (!mech.systems) {
+          mech.systems = []
+          for (var i = 0; i < MAX_SYSTEMS; i++) {
+            mech.systems.push({ class: '' })
+          }
+          saveState()
         }
       },
       view: function (vnode) {
-        var ship = vnode.attrs.ship
-        var fleet = vnode.attrs.fleet
+        var mech = vnode.attrs.mech
+        var team = vnode.attrs.team
 
         return m('div', { class: 'column' }, [
           m('div', [
             m('input', {
-              value: ship.name,
+              value: mech.name,
               oninput: function (e) {
-                changeName(ship, e.target.value)
+                changeName(mech, e.target.value)
               },
             }),
             m(
@@ -173,7 +162,7 @@
               {
                 title: 'Copy',
                 onclick: function () {
-                  duplicate(fleet, ship)
+                  duplicate(team, mech)
                 },
                 style: 'margin-left: 5px',
               },
@@ -184,27 +173,17 @@
               {
                 title: 'Remove',
                 onclick: function () {
-                  remove(fleet, ship)
+                  remove(team, mech)
                 },
                 style: 'margin: 0px 10px 0px 5px',
               },
               '×',
             ),
-            m('span', dice(ship)),
+            m('span', dice(mech)),
           ]),
           m('div', { class: 'row', style: 'gap: 5px' }, [
-            m(
-              'select',
-              {
-                value: ship.class,
-                oninput: function (e) {
-                  changeClass(ship, e.target.value)
-                },
-              },
-              [m('option', { value: 'capital' }, 'Capital'), m('option', { value: 'frigate' }, 'Frigate')],
-            ),
-            ship.hasOwnProperty('systems')
-              ? ship.systems.map(function (system) {
+            mech.hasOwnProperty('systems')
+              ? mech.systems.map(function (system) {
                   return m(SystemComponent, { system: system })
                 })
               : null,
@@ -214,46 +193,46 @@
     }
   }
 
-  function FleetComponent() {
-    function add(fleet) {
-      fleet.ships.push({ systems: [] })
+  function TeamComponent() {
+    function add(team) {
+      team.mechs.push({ systems: [] })
       recalculatePPA()
     }
 
     return {
       oninit: function (vnode) {
-        var fleet = vnode.attrs.fleet
-        if (!fleet.hasOwnProperty('ships')) {
-          fleet.ships = []
-          for (var i = 0; i < fleet.tas; i++) {
-            fleet.ships.push({})
+        var team = vnode.attrs.team
+        if (!team.hasOwnProperty('mechs')) {
+          team.mechs = []
+          for (var i = 0; i < team.tas; i++) {
+            team.mechs.push({})
           }
         }
       },
       view: function (vnode) {
-        var fleet = vnode.attrs.fleet
+        var team = vnode.attrs.team
         return m('div', [
-          m('h3', fleet.name),
-          fleet.ships.map(function (ship) {
-            return m('div', { style: 'margin-bottom: 10px' }, [m(ShipComponent, { ship: ship, fleet: fleet })])
+          m('h3', team.name),
+          team.mechs.map(function (mech) {
+            return m('div', { style: 'margin-bottom: 10px' }, [m(MechComponent, { mech: mech, team: team })])
           }),
           m(
             'button',
             {
               onclick: function () {
-                add(fleet)
+                add(team)
               },
             },
-            'Add ship',
+            'Add mech',
           ),
         ])
       },
     }
   }
 
-  function ShipTrackerComponent() {
-    function setShips(newSyncShips) {
-      syncShips = newSyncShips
+  function MechTrackerComponent() {
+    function setMechs(newsyncMechs) {
+      syncMechs = newsyncMechs
       recalculatePPA()
     }
 
@@ -263,17 +242,17 @@
           m(
             'label',
             { style: 'float: right;margin-top: 5px' },
-            'Sync PPA calculations with fleet builder',
+            'Sync PPA calculations with team builder',
             m('input', {
               onclick: function (e) {
-                setShips(e.target.checked)
+                setMechs(e.target.checked)
               },
               type: 'checkbox',
-              checked: syncShips,
+              checked: syncMechs,
             }),
           ),
           players.map(function (player) {
-            return m(FleetComponent, { fleet: player })
+            return m(TeamComponent, { team: player })
           }),
         ])
       },
@@ -343,7 +322,7 @@
           m('input', {
             type: 'number',
             min: 0,
-            disabled: syncShips,
+            disabled: syncMechs,
             value: player.tas,
             oninput: function (e) {
               changeTas(player, e.target.value)
@@ -352,7 +331,7 @@
           m('input', {
             type: 'number',
             min: 0,
-            disabled: syncShips,
+            disabled: syncMechs,
             value: player.systems,
             oninput: function (e) {
               changeSystems(player, e.target.value)
@@ -371,8 +350,8 @@
       if (oldData !== null) {
         data = JSON.parse(oldData)
         players = data.players
-        syncShips = data.sync
-        trackShips = data.track
+        syncMechs = data.sync
+        trackMechs = data.track
       }
     },
     view: function () {
@@ -383,15 +362,15 @@
           tas: 5,
           systems: 10,
           ppa: 5,
-          ships: [],
+          mechs: [],
         })
         recalculatePPA()
       }
 
-      function setShips(newTrackShips) {
-        trackShips = newTrackShips
-        if (!trackShips) {
-          syncShips = false
+      function setMechs(newTrackMechs) {
+        trackMechs = newTrackMechs
+        if (!trackMechs) {
+          syncMechs = false
         }
       }
 
@@ -427,7 +406,7 @@
                 {
                   disabled: players.length === 0,
                   onclick: function () {
-                    location.href = 'battle.html?' + BATTLE_ID_PARAM + '=' + storeBattle(players, trackShips, syncShips)
+                    location.href = 'battle.html?' + BATTLE_ID_PARAM + '=' + storeBattle(players, trackMechs, syncMechs)
                   },
                 },
                 'Fight!',
@@ -435,14 +414,14 @@
               m(
                 'button',
                 {
-                  class: 'accordion ' + (trackShips ? 'active' : ''),
+                  class: 'accordion ' + (trackMechs ? 'active' : ''),
                   onclick: function (e) {
-                    setShips(!trackShips)
+                    setMechs(!trackMechs)
                   },
                 },
                 'Fleet builder',
               ),
-              trackShips ? m(ShipTrackerComponent) : null,
+              trackMechs ? m(MechTrackerComponent) : null,
             ],
           ),
           m(FooterComponent, {}),

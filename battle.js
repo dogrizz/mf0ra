@@ -2,158 +2,85 @@
   const root = document.body
   let battle = {}
 
-  function CompanyComponent() {
-    let company = ''
-    let fleet = ''
+  function MechComponent() {
+    let mech = ''
+    let team = ''
 
     function systemStateChange(system, newState) {
       system.disabled = newState
-      if (company.systems.filter((system) => !system.disabled).length === 0) {
-        company.destroyed = true
-        fleet.tas--
-        recalculate(fleet, battle.roster)
-      } else if (company.destroyed) {
-        company.destroyed = false
-        fleet.tas++
-        recalculate(fleet, battle.roster)
+      if (mech.systems.filter((system) => !system.disabled).length === 0) {
+        mech.destroyed = true
+        team.tas--
+        recalculate(team, battle.roster)
+      } else if (mech.destroyed) {
+        mech.destroyed = false
+        team.tas++
+        recalculate(team, battle.roster)
       }
       store(battle)
     }
 
-    function fuelChange(comp) {
-      comp.outOfFuel = !comp.outOfFuel
-      if (comp.outOfFuel) {
-        fleet.tas--
-      } else {
-        fleet.tas++
-      }
-      recalculate(fleet, battle.roster)
-      store(battle)
-    }
-
-    return {
-      view: function (vnode) {
-        company = vnode.attrs.company
-        fleet = vnode.attrs.fleet
-
-        return m('div', { class: 'column tas' }, [
-          m('div', { class: 'row', style: 'gap: 5px' }, [
-            m(
-              'h4',
-              { class: company.destroyed || company.outOfFuel ? 'dead' : '' },
-              company.aceType ? `${company.aceType} ace` : 'Company',
-            ),
-            m(
-              'button',
-              {
-                title: 'Fuel state',
-                onclick: function () {
-                  fuelChange(company)
-                },
-              },
-              '⛽',
-            ),
-          ]),
-          m('span', companyDice(company)),
-          m('span', `origin: ${company.origin}`),
-          company.systems.map(function (system) {
-            return m(
-              'label',
-              m('input', {
-                type: 'checkbox',
-                checked: system.disabled,
-                disabled: company.outOfFuel,
-                onclick: function (e) {
-                  systemStateChange(system, e.target.checked)
-                },
-              }),
-              system.class,
-            )
-          }),
-        ])
-      },
-    }
-  }
-
-  function ShipComponent() {
-    let ship = ''
-    let fleet = ''
-
-    function systemStateChange(system, newState) {
-      system.disabled = newState
-      if (ship.systems.filter((system) => !system.disabled).length === 0) {
-        ship.destroyed = true
-        fleet.tas--
-        recalculate(fleet, battle.roster)
-      } else if (ship.destroyed) {
-        ship.destroyed = false
-        fleet.tas++
-        recalculate(fleet, battle.roster)
-      }
-      store(battle)
-    }
-
-    function startTransfer(ship) {
+    function startTransfer(mech) {
       if (battle.roster.length === 2) {
-        transfer(ship, battle.roster.filter((f) => f != fleet)[0])
+        transfer(mech, battle.roster.filter((f) => f != team)[0])
       } else {
-        ship.showPopup = true
+        mech.showPopup = true
       }
     }
 
-    function transfer(ship, targetFleet) {
-      fleet.tas--
+    function transfer(mech, targetFleet) {
+      team.tas--
       targetFleet.tas++
-      fleet.ships.splice(fleet.ships.indexOf(ship), 1)
-      targetFleet.ships.push(ship)
+      team.mechs.splice(team.mechs.indexOf(mech), 1)
+      targetFleet.mechs.push(mech)
       store(battle)
     }
 
     return {
       view: function (vnode) {
-        ship = vnode.attrs.ship
-        fleet = vnode.attrs.fleet
+        mech = vnode.attrs.mech
+        team = vnode.attrs.team
 
-        return m('div', { class: ship.owner !== fleet.id ? 'column tas captured' : 'column tas' }, [
+        return m('div', { class: mech.owner !== team.id ? 'column tas captured' : 'column tas' }, [
           m('div', { class: 'row', style: 'gap: 5px' }, [
-            m('h4', { class: ship.destroyed ? 'dead' : '' }, ship.name || 'noname'),
+            m('h4', { class: mech.destroyed ? 'dead' : '' }, mech.name || 'noname'),
             m(
               'button',
               {
                 title: 'Transfer',
-                hidden: ship.destroyed,
+                hidden: mech.destroyed,
                 onclick: function () {
-                  startTransfer(ship)
+                  startTransfer(mech)
                 },
               },
               '⇌',
             ),
             m(
               'div',
-              { class: ship.showPopup ? 'overlay overlay-show' : 'overlay' },
+              { class: mech.showPopup ? 'overlay overlay-show' : 'overlay' },
               m('div', { class: 'column popup', style: 'gap: 10px' }, [
                 m('div', { class: 'row', style: 'justify-content: space-between;margin-bottom: 10px' }, [
-                  m('h3', `Transfer ship ${ship.name} to:`),
+                  m('h3', `Transfer mech ${mech.name} to:`),
                   m(
                     'button',
                     {
                       style: 'float: right',
                       onclick: function () {
-                        ship.showPopup = false
+                        mech.showPopup = false
                       },
                     },
                     '×',
                   ),
                 ]),
                 battle.roster
-                  .filter((f) => f !== fleet)
+                  .filter((f) => f !== team)
                   .map((player) =>
                     m(
                       'button',
                       {
                         onclick: function () {
-                          ship.showPopup = false
-                          transfer(ship, player)
+                          mech.showPopup = false
+                          transfer(mech, player)
                         },
                       },
                       player.name,
@@ -162,8 +89,8 @@
               ]),
             ),
           ]),
-          m('span', dice(ship)),
-          ship.systems.map(function (system) {
+          m('span', dice(mech)),
+          mech.systems.map(function (system) {
             let systemText = system.class
             if (system.class === 'attack') {
               systemText = `${systemText} ${system.attackType}`
@@ -188,26 +115,26 @@
     }
   }
 
-  function FleetComponent() {
+  function TeamComponent() {
     return {
       view: function (vnode) {
-        const fleet = vnode.attrs.fleet
+        const team = vnode.attrs.team
         return m('div', { class: 'column', style: 'gap: 10px' }, [
-          m('h3', fleet.name),
-          m('div', { class: 'row', style: 'gap: 15px' }, [fleet.ships.map((ship) => m(ShipComponent(), { ship: ship, fleet: fleet }))]),
+          m('h3', team.name),
+          m('div', { class: 'row', style: 'gap: 15px' }, [team.mechs.map((mech) => m(MechComponent(), { mech: mech, team: team }))]),
           m('div', { class: 'row', style: 'gap: 15px' }, [
-            fleet.companies.map((company) => m(CompanyComponent(), { company: company, fleet: fleet })),
+            team.companies.map((company) => m(CompanyComponent(), { company: company, team: team })),
           ]),
         ])
       },
     }
   }
 
-  function ShipTrackerComponent() {
+  function MechTrackerComponent() {
     return {
       view: function () {
         return m('div', { class: 'column', style: 'margin-top: 15px; gap: 15px' }, [
-          battle.roster.map((fleet) => m(FleetComponent(), { fleet: fleet })),
+          battle.roster.map((team) => m(TeamComponent(), { team: team })),
         ])
       },
     }
@@ -290,7 +217,7 @@
                     return m(PlayerComponent, { player: player })
                   }),
                 ]),
-                battle.sync ? m(ShipTrackerComponent) : null,
+                battle.sync ? m(MechTrackerComponent) : null,
               ],
           m(FooterComponent, {}),
         ]),

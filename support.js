@@ -1,17 +1,17 @@
 const BATTLE_STORAGE_KEY = 'mf0ra-battles'
 const BATTLE_ID_PARAM = 'battleId'
 
-function calculatePPA(players, syncShips) {
+function calculatePPA(players, syncMechs) {
   if (players.length === 0) {
     return
   }
   players.forEach(function (player) {
     player.ppa = 5
   })
-  if (syncShips) {
+  if (syncMechs) {
     players.forEach(function (player) {
-      player.tas = player.ships.length + countMechCompanies(player.ships)
-      player.systems = countSystems(player.ships)
+      player.tas = player.mechs.length
+      player.systems = countSystems(player.mechs)
     })
   }
   var playersSorted = [...players].sort(function (a, b) {
@@ -42,26 +42,26 @@ function calculatePPA(players, syncShips) {
   })
 }
 
-function dice(ship) {
-  if (ship.destroyed) {
+function dice(mech) {
+  if (mech.destroyed) {
     return ''
   }
   let diceDescription = ''
-  if (!hasInternals(ship)) {
+  if (!hasInternals(mech)) {
     diceDescription = '2W'
   } else {
-    var internals = ship.systems.filter(function (system) {
+    var internals = mech.systems.filter(function (system) {
       return system.class === 'internal' && !system.disabled
     }).length
     if (internals) {
       diceDescription = `${diceDescription}${internals}W`
     }
   }
-  if (ship.hasOwnProperty('class') && ship.class === 'frigate') {
+  if (mech.hasOwnProperty('class') && mech.class === 'frigate') {
     diceDescription += '1G'
   }
-  if (ship.hasOwnProperty('systems')) {
-    var catapults = ship.systems.filter(function (system) {
+  if (mech.hasOwnProperty('systems')) {
+    var catapults = mech.systems.filter(function (system) {
       return system.class === 'catapult' && !system.disabled
     }).length
     if (catapults == 1) {
@@ -71,27 +71,27 @@ function dice(ship) {
       diceDescription += '3K'
     }
 
-    var defence = ship.systems.filter(function (system) {
+    var defence = mech.systems.filter(function (system) {
       return system.class === 'defence' && !system.disabled
     }).length
     if (defence) {
       diceDescription = `${diceDescription}${defence}B`
     }
 
-    var sensors = ship.systems.filter(function (system) {
+    var sensors = mech.systems.filter(function (system) {
       return system.class === 'sensor' && !system.disabled
     }).length
     if (sensors) {
       diceDescription = `${diceDescription}${sensors}Y`
     }
 
-    var attack = ship.systems.filter(function (system) {
+    var attack = mech.systems.filter(function (system) {
       return system.class === 'attack' && !system.disabled
     })
     var attacks = {
-      p: [],
+      m: [],
+      d: [],
       a: [],
-      s: [],
     }
     attack.forEach(function (att) {
       if (att.hasOwnProperty('attackType2')) {
@@ -119,63 +119,10 @@ function dice(ship) {
   return diceDescription
 }
 
-function companyDice(company) {
-  if (company.destroyed || company.outOfFuel) {
-    return ''
-  }
-  let diceDescription = ''
-  var internals = company.systems.filter(function (system) {
-    return system.class === 'systems' && !system.disabled
-  }).length
-  if (internals) {
-    diceDescription = `${diceDescription}${internals}W`
-  }
-  var attack = company.systems.filter(function (system) {
-    return system.class === 'weapon' && !system.disabled
-  }).length
-  if (attack) {
-    diceDescription = `${diceDescription}2Rd`
-  }
-  var defense = company.systems.filter(function (system) {
-    return system.class === 'defense' && !system.disabled
-  }).length
-  if (defense) {
-    diceDescription = `${diceDescription}${defense}B`
-  }
-  var comms = company.systems.filter(function (system) {
-    return system.class === 'comms' && !system.disabled
-  }).length
-  if (comms) {
-    diceDescription = `${diceDescription}${comms}Y`
-  }
-  var movement = company.systems.filter(function (system) {
-    return system.class === 'movement' && !system.disabled
-  }).length
-  if (movement) {
-    diceDescription = `${diceDescription}${movement}G`
-  }
-  if (company.aceType) {
-    diceDescription = `${diceDescription}+${company.aceType[0].toUpperCase()}d8`
-  }
-  return diceDescription
-}
-
-function countMechCompanies(ships) {
-  var companies = 0
-  ships.forEach(function (ship) {
-    ship.systems.forEach(function (system) {
-      if (system.class === 'catapult') {
-        companies = companies + 1
-      }
-    })
-  })
-  return companies
-}
-
-function countSystems(ships) {
+function countSystems(mechs) {
   var systems = 0
-  ships.forEach(function (ship) {
-    ship.systems.forEach(function (system) {
+  mechs.forEach(function (mech) {
+    mech.systems.forEach(function (system) {
       if (system.class != null && system.class !== '') {
         systems = systems + 1
       }
@@ -192,9 +139,9 @@ function store(battle) {
   storeBattle(battle.roster, battle.track, battle.sync, battle.id)
 }
 
-function storeBattle(roster, trackShips, syncShips, id) {
+function storeBattle(roster, trackMechs, syncMechs, id) {
   const oldData = localStorage.getItem(BATTLE_STORAGE_KEY)
-  let data = JSON.stringify({ roster: roster, track: trackShips, sync: syncShips })
+  let data = JSON.stringify({ roster: roster, track: trackMechs, sync: syncMechs })
   let hashed = hash(data)
   if (id) {
     hashed = id
@@ -232,26 +179,22 @@ function readBattle(id) {
     }
     if (!battle.track || !battle.sync) {
       battle.roster.forEach(function (player) {
-        player.ships = null
+        player.mechs = null
       })
       store(battle)
     } else {
       if (!alreadyAddedInternals(battle)) {
         battle.roster.forEach((player) => {
           player.id = self.crypto.randomUUID()
-          player.ships.forEach((ship) => {
-            ship.owner = player.id
-            ship.id = self.crypto.randomUUID()
-            ship.systems.push({ class: 'internal' })
-            ship.systems.push({ class: 'internal' })
-            ship.systems = ship.systems.filter((system) => system.class)
-            ship.systems = [...ship.systems].sort()
+          player.mechs.forEach((mech) => {
+            mech.owner = player.id
+            mech.id = self.crypto.randomUUID()
+            mech.systems.push({ class: 'internal' })
+            mech.systems.push({ class: 'internal' })
+            mech.systems = mech.systems.filter((system) => system.class)
+            mech.systems = [...mech.systems].sort()
           })
         })
-      }
-      if (!alreadySetUpCompanies(battle)) {
-        battle.roster.forEach((player) => buildCompanyData(player))
-        store(battle)
       }
     }
 
@@ -261,40 +204,11 @@ function readBattle(id) {
 }
 
 function alreadyAddedInternals(battle) {
-  return battle.roster.some((player) => player.ships.some((ship) => hasInternals(ship)))
+  return battle.roster.some((player) => player.mechs.some((mech) => hasInternals(mech)))
 }
 
-function hasInternals(ship) {
-  return ship.systems.some((system) => system.class === 'internal')
-}
-
-function alreadySetUpCompanies(battle) {
-  return battle.roster.some((player) => player.hasOwnProperty('companies'))
-}
-
-function buildCompanyData(player) {
-  player.companies = []
-  player.ships.forEach(function (ship) {
-    ship.systems.forEach(function (system) {
-      if (system.class === 'catapult') {
-        const company = {
-          origin: ship.name,
-          systems: [
-            { class: 'weapon' },
-            { class: 'defense' },
-            { class: 'comms' },
-            { class: 'movement' },
-            { class: 'systems' },
-            { class: 'systems' },
-          ],
-        }
-        player.companies.push(company)
-      }
-    })
-    if (ship.hasAce) {
-      player.companies[player.companies.length - 1].aceType = ship.aceType
-    }
-  })
+function hasInternals(mech) {
+  return mech.systems.some((system) => system.class === 'internal')
 }
 
 function copy(obj) {

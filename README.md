@@ -1,4 +1,4 @@
-# mf0
+# mf0:ra
 
 Tools for managing game of Mobile frame zero: Rapid attack.
 

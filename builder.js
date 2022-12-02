@@ -122,9 +122,6 @@
     function remove(team, mech) {
       var position = team.mechs.indexOf(mech)
       team.mechs.splice(position, 1)
-      if (mech.hasAce) {
-        team.aceSelected = false
-      }
       recalculatePPA()
     }
 
@@ -137,13 +134,6 @@
     return {
       oninit: function (vnode) {
         var mech = vnode.attrs.mech
-        if (!mech.systems) {
-          mech.systems = []
-          for (var i = 0; i < MAX_SYSTEMS; i++) {
-            mech.systems.push({ class: '' })
-          }
-          saveState()
-        }
       },
       view: function (vnode) {
         var mech = vnode.attrs.mech
@@ -195,8 +185,9 @@
 
   function TeamComponent() {
     function add(team) {
-      team.mechs.push({ systems: [] })
+      team.mechs.push({ systems: [{ class: '' }, { class: '' }, { class: '' }, { class: '' }] })
       recalculatePPA()
+      saveState()
     }
 
     return {
@@ -382,7 +373,7 @@
             m(
               'div',
               { class: 'column-justified' },
-              m('span', 'Fleet id'),
+              m('span', 'Team id'),
               m('span', 'HVA'),
               m('span', 'TAs'),
               m('span', 'Systems'),
@@ -419,7 +410,7 @@
                     setMechs(!trackMechs)
                   },
                 },
-                'Fleet builder',
+                'Team builder',
               ),
               trackMechs ? m(MechTrackerComponent) : null,
             ],

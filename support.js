@@ -57,24 +57,12 @@ function dice(mech) {
       diceDescription = `${diceDescription}${internals}W`
     }
   }
-  if (mech.hasOwnProperty('class') && mech.class === 'frigate') {
-    diceDescription += '1G'
-  }
   if (mech.hasOwnProperty('systems')) {
-    var catapults = mech.systems.filter(function (system) {
-      return system.class === 'catapult' && !system.disabled
-    }).length
-    if (catapults == 1) {
-      diceDescription += '1K'
-    }
-    if (catapults > 1) {
-      diceDescription += '3K'
-    }
-
     var defence = mech.systems.filter(function (system) {
       return system.class === 'defence' && !system.disabled
     }).length
     if (defence) {
+      defence = defence > 2 ? 2 : defence
       diceDescription = `${diceDescription}${defence}B`
     }
 
@@ -82,7 +70,16 @@ function dice(mech) {
       return system.class === 'sensor' && !system.disabled
     }).length
     if (sensors) {
+      sensors = sensors > 2 ? 2 : sensors
       diceDescription = `${diceDescription}${sensors}Y`
+    }
+    
+    var movement = mech.systems.filter(function (system) {
+      return system.class === 'move' && !system.disabled
+    }).length
+    if (movement) {
+      movement = movement > 2 ? 2 : movement
+      diceDescription = `${diceDescription}${movement}G`
     }
 
     var attack = mech.systems.filter(function (system) {

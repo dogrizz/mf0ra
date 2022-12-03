@@ -73,15 +73,7 @@ function dice(mech) {
       sensors = sensors > 2 ? 2 : sensors
       diceDescription = `${diceDescription}${sensors}Y`
     }
-    
-    var movement = mech.systems.filter(function (system) {
-      return system.class === 'move' && !system.disabled
-    }).length
-    if (movement) {
-      movement = movement > 2 ? 2 : movement
-      diceDescription = `${diceDescription}${movement}G`
-    }
-
+    var sprinter = true
     var attack = mech.systems.filter(function (system) {
       return system.class === 'attack' && !system.disabled
     })
@@ -107,10 +99,27 @@ function dice(mech) {
         .map((att) => att.val)
         .reduce((a, b) => a + b, 0)
       if (val) {
+        const type = att[0]
+        if (type !== 'm') {
+          sprinter = false
+        }
         var dice = val <= 3 ? val : '2+d8'
-        diceDescription = `${diceDescription}R${att[0]}${dice}`
+        diceDescription = `${diceDescription}R${type}${dice}`
       }
     })
+
+    var movement = mech.systems.filter(function (system) {
+      return system.class === 'move' && !system.disabled
+    }).length
+    if (movement) {
+      movement = movement > 2 ? 2 : movement
+      diceDescription = `${diceDescription}G${movement}`
+      if (sprinter) {
+        diceDescription = `${diceDescription}+d8`
+      }
+    } else if (sprinter) {
+      diceDescription = `${diceDescription}Gd8`
+    }
   }
 
   return diceDescription

@@ -155,6 +155,7 @@
     function remove(team, mech) {
       var position = team.mechs.indexOf(mech)
       team.mechs.splice(position, 1)
+      team.rockets = team.rockets - mech.rockets
       recalculatePPA()
     }
 
@@ -219,7 +220,11 @@
 
   function TeamComponent() {
     function add(team) {
-      team.mechs.push({ systems: [{ class: '' }, { class: '' }, { class: '' }, { class: '' }], rockets: 0 })
+      team.mechs.push({
+        systems: [{ class: '' }, { class: '' }, { class: '' }, { class: '' }],
+        rockets: 0,
+        name: randomMechName(),
+      })
       recalculatePPA()
       saveState()
     }

@@ -263,3 +263,50 @@ function determineRole(players) {
     }
   })
 }
+
+function randomMechName() {
+  return mechNames[Math.floor(Math.random() * mechNames.length)]
+}
+
+const mechNames = [
+  'Babylon',
+  'Aurora',
+  'Thanos',
+  'Javelin',
+  'Wyvern',
+  'Roaming Leviathan',
+  'Promise',
+  'Black Widow',
+  'Curator',
+  'Centurion',
+  'Unity',
+  'Arbalest',
+  'Kingfisher',
+  'Spectator',
+  'Wolf',
+  'Juggernaut',
+  'Faith',
+  'Guardian',
+  'Oberon',
+  'Exarch',
+  'Eternity',
+  'Inferno',
+  'Artemis',
+  'Milkshake',
+  'Pandora',
+  'Catapult',
+  'Excelsior',
+  'Big Momma',
+  'Sinanju',
+  'Megazord',
+  'Gipsy Danger',
+  'Jehuty',
+  'Escaflowne',
+  'Marvin',
+  'Bushnell',
+  'Kai',
+  'Gernsback',
+  'Shadow',
+  'Falke',
+  'Mistral'
+]

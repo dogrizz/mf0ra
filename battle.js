@@ -20,74 +20,25 @@
       store(battle)
     }
 
-    function startTransfer(mech) {
-      if (battle.roster.length === 2) {
-        transfer(mech, battle.roster.filter((f) => f != team)[0])
-      } else {
-        mech.showPopup = true
-      }
-    }
-
-    function transfer(mech, targetFleet) {
-      team.tas--
-      targetFleet.tas++
-      team.mechs.splice(team.mechs.indexOf(mech), 1)
-      targetFleet.mechs.push(mech)
-      store(battle)
-    }
-
     return {
       view: function (vnode) {
         mech = vnode.attrs.mech
         team = vnode.attrs.team
 
-        return m('div', { class: mech.owner !== team.id ? 'column tas captured' : 'column tas' }, [
-          m('div', { class: 'row', style: 'gap: 5px' }, [
-            m('h4', { class: mech.destroyed ? 'dead' : '' }, mech.name || 'noname'),
-            m(
-              'button',
-              {
-                title: 'Transfer',
-                hidden: mech.destroyed,
+        return m('div', { class: 'column tas' }, [
+          m('div', { class: 'row', style: 'gap: 5px' }, [m('h4', { class: mech.destroyed ? 'dead' : '' }, mech.name || 'noname')]),
+          m('div', { class: 'row', style: 'gap: 3px' }, [
+            m('span', 'Rockets:'),
+            mech.rockets.map(function (rocket) {
+              return m('input', {
+                type: 'checkbox',
+                checked: rocket.fired,
                 onclick: function () {
-                  startTransfer(mech)
+                  rocket.fired = !rocket.fired
+                  store(battle)
                 },
-              },
-              '⇌',
-            ),
-            m(
-              'div',
-              { class: mech.showPopup ? 'overlay overlay-show' : 'overlay' },
-              m('div', { class: 'column popup', style: 'gap: 10px' }, [
-                m('div', { class: 'row', style: 'justify-content: space-between;margin-bottom: 10px' }, [
-                  m('h3', `Transfer mech ${mech.name} to:`),
-                  m(
-                    'button',
-                    {
-                      style: 'float: right',
-                      onclick: function () {
-                        mech.showPopup = false
-                      },
-                    },
-                    '×',
-                  ),
-                ]),
-                battle.roster
-                  .filter((f) => f !== team)
-                  .map((player) =>
-                    m(
-                      'button',
-                      {
-                        onclick: function () {
-                          mech.showPopup = false
-                          transfer(mech, player)
-                        },
-                      },
-                      player.name,
-                    ),
-                  ),
-              ]),
-            ),
+              })
+            }),
           ]),
           m('span', dice(mech)),
           mech.systems.map(function (system) {
@@ -122,9 +73,6 @@
         return m('div', { class: 'column', style: 'gap: 10px' }, [
           m('h3', team.name),
           m('div', { class: 'row', style: 'gap: 15px' }, [team.mechs.map((mech) => m(MechComponent(), { mech: mech, team: team }))]),
-          m('div', { class: 'row', style: 'gap: 15px' }, [
-            team.companies.map((company) => m(CompanyComponent(), { company: company, team: team })),
-          ]),
         ])
       },
     }

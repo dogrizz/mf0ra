@@ -4,7 +4,7 @@
   var players = []
   var trackMechs = false
   var syncMechs = false
-  var MAX_SYSTEMS = 4
+  const MAX_ROCKETS = 3
   const LOCAL_STORAGE_KEY = 'mf0ra-tools'
 
   function recalculatePPA() {
@@ -14,6 +14,39 @@
 
   function saveState() {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ players: players, track: trackMechs, sync: syncMechs }))
+  }
+
+  function RocketsComponent() {
+    return {
+      view: function (vnode) {
+        const team = vnode.attrs.team
+        const mech = vnode.attrs.mech
+        const checkboxes = []
+        const hide = team.rockets === MAX_ROCKETS && !(mech.rockets > 0)
+        checkboxes.push(m('span', { hidden: hide }, 'Rockets: '))
+        for (var i = 0; i < MAX_ROCKETS; i++) {
+          checkboxes.push(
+            m('input', {
+              type: 'checkbox',
+              hidden: team.rockets === MAX_ROCKETS && i >= mech.rockets,
+              checked: i < mech.rockets,
+              onclick: function (e) {
+                const add = e.target.checked
+                if (add) {
+                  team.rockets = team.rockets + 1
+                  mech.rockets = mech.rockets + 1
+                } else {
+                  team.rockets = team.rockets - 1
+                  mech.rockets = mech.rockets - 1
+                }
+                saveState()
+              },
+            }),
+          )
+        }
+        return checkboxes
+      },
+    }
   }
 
   function SystemComponent() {
@@ -169,7 +202,8 @@
               },
               '×',
             ),
-            m('span', dice(mech)),
+            m('span', { style: 'margin-right: 10px' }, dice(mech)),
+            m(RocketsComponent, { mech: mech, team: team }),
           ]),
           m('div', { class: 'row', style: 'gap: 5px' }, [
             mech.hasOwnProperty('systems')
@@ -185,7 +219,7 @@
 
   function TeamComponent() {
     function add(team) {
-      team.mechs.push({ systems: [{ class: '' }, { class: '' }, { class: '' }, { class: '' }] })
+      team.mechs.push({ systems: [{ class: '' }, { class: '' }, { class: '' }, { class: '' }], rockets: 0 })
       recalculatePPA()
       saveState()
     }
@@ -349,6 +383,7 @@
       function add() {
         players.push({
           name: 'Player',
+          rockets: 0,
           hva: 3,
           tas: 5,
           systems: 10,

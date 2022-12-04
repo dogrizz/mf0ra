@@ -73,7 +73,6 @@ function dice(mech) {
       sensors = sensors > 2 ? 2 : sensors
       diceDescription = `${diceDescription}${sensors}Y`
     }
-    var sprinter = true
     var attack = mech.systems.filter(function (system) {
       return system.class === 'attack' && !system.disabled
     })
@@ -100,13 +99,24 @@ function dice(mech) {
         .reduce((a, b) => a + b, 0)
       if (val) {
         const type = att[0]
-        if (type !== 'm') {
-          sprinter = false
-        }
         var dice = val <= 3 ? val : '2+d8'
         diceDescription = `${diceDescription}R${type}${dice}`
       }
     })
+
+    var sprinter = true
+    mech.systems
+      .filter(function (system) {
+        return system.class === 'attack'
+      })
+      .forEach(function (att) {
+        if (att.attackType !== 'm') {
+          sprinter = false
+        }
+        if (att.hasOwnProperty('attackType2') && att.attackType2 !== 'm') {
+          sprinter = false
+        }
+      })
 
     var movement = mech.systems.filter(function (system) {
       return system.class === 'move' && !system.disabled
@@ -199,6 +209,13 @@ function readBattle(id) {
             mech.systems.push({ class: 'internal' })
             mech.systems = mech.systems.filter((system) => system.class)
             mech.systems = [...mech.systems].sort()
+            if (mech.rockets) {
+              const rockets = []
+              for (var i = 0; i < mech.rockets; i++) {
+                rockets.push({ fired: false })
+              }
+              mech.rockets = rockets
+            }
           })
         })
       }
